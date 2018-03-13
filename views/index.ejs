@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
+    <link rel='stylesheet' href='/stylesheets/style.css'/>
+</head>
+<body>
+<div class="container-fluid">
+    <h1><%= title %></h1>
+    <% if (messages) { %>
+    <% for (var prop in messages) { %>
+    <div class="alert alert-warning">
+        <%- messages[prop] %>
+    </div>
+    <% } %>
+    <% } %>
+    <form method="post" action="/upload" enctype="multipart/form-data" class="form-inline mb-2">
+        <div class="form-group">
+            <label for="fileUpload">請選擇 .csv 檔案</label>
+            <input type="file" id="fileUpload" class="form-control-file" name="csvdata" accept="text/csv">
+        </div>
+        <button type="submit" class="btn btn-outline-primary mr-1">上傳</button>
+        <button class="btn btn-outline-secondary js-post-to-api">POST to API</button>
+    </form>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">No</th>
+            <th scope="col">RecipientPhone</th>
+            <th scope="col">TicketNo</th>
+            <th scope="col">Status</th>
+        </tr>
+        </thead>
+        <tbody class="js-data-tbody">
+        </tbody>
+    </table>
+</div>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+<script>
+  var data = <%- data %>;
+
+  $(function () {
+    if (data.sendData) {
+      var tbodyContent = '';
+      for (var item in data.sendData) {
+        tbodyContent += '<tr>';
+        tbodyContent += '<th scope="row">' + data.sendData[item].no + '</th>';
+        tbodyContent += '<td>' + data.sendData[item].recipientPhone + '</td>';
+        tbodyContent += '<td>' + data.sendData[item].ticketNo + '</td>';
+        tbodyContent += '<td></td>';
+        tbodyContent += '</tr>';
+      }
+      $('.js-data-tbody').html(tbodyContent);
+    }
+  });
+
+  $('.js-post-to-api').on('click', function (event) {
+    event.preventDefault();
+    console.log(data);
+    if (!$.isEmptyObject(data)) {
+      var tbodyContent = '';
+      for (var item in data.sendData) {
+        var recipientPhone = data.sendData[item].recipientPhone;
+        var ticketNo = data.sendData[item].ticketNo;
+        var success;
+        var failure;
+        $.ajax({
+          type: 'POST',
+          url: 'http://' + data.serverIP + '/theLoopDev/api/Transaction/PresentBatch',
+          data: JSON.stringify({
+            'RecipientPhone': recipientPhone,
+            'TicketNo': ticketNo,
+            'SMSMessage': data.SMSMessage,
+            'IMMessage': data.IMMessage
+          }),
+          contentType: "application/json; charset=utf-8",
+          dataType: "json",
+          async: false,
+          success: function (data) {
+            success = data;
+          },
+          failure: function (errMsg) {
+            failure = errMsg;
+          }
+        });
+        console.log(success);
+        console.log(failure);
+
+        tbodyContent += '<tr>';
+        tbodyContent += '<th scope="row">' + data.sendData[item].no + '</th>';
+        tbodyContent += '<td>' + data.sendData[item].recipientPhone + '</td>';
+        tbodyContent += '<td>' + data.sendData[item].ticketNo + '</td>';
+        tbodyContent += '<td>' + success + '</td>';
+        tbodyContent += '</tr>';
+      }
+      $('.js-data-tbody').html(tbodyContent);
+    }
+  })
+</script>
+</body>
+</html>
