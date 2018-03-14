@@ -36,6 +36,9 @@
             <th scope="col">RecipientPhone</th>
             <th scope="col">TicketNo</th>
             <th scope="col">Status</th>
+            <th scope="col">SMSS</th>
+            <th scope="col">SRMsg</th>
+            <th scope="col">error</th>
         </tr>
         </thead>
         <tbody class="js-data-tbody">
@@ -61,6 +64,9 @@
         tbodyContent += '<td>' + data.sendData[item].recipientPhone + '</td>';
         tbodyContent += '<td>' + data.sendData[item].ticketNo + '</td>';
         tbodyContent += '<td></td>';
+        tbodyContent += '<td></td>';
+        tbodyContent += '<td></td>';
+        tbodyContent += '<td></td>';
         tbodyContent += '</tr>';
       }
       $('.js-data-tbody').html(tbodyContent);
@@ -75,8 +81,7 @@
       for (var item in data.sendData) {
         var recipientPhone = data.sendData[item].recipientPhone;
         var ticketNo = data.sendData[item].ticketNo;
-        var success;
-        var failure;
+        var result = {};
         $.ajax({
           type: 'POST',
           url: 'http://' + data.serverIP + '/theLoopDev/api/Transaction/PresentBatch',
@@ -89,21 +94,42 @@
           contentType: "application/json; charset=utf-8",
           dataType: "json",
           async: false,
-          success: function (data) {
-            success = data;
+          success: function (data, status, xhr) {
+            result.data = data;
+            result.status = status;
           },
-          failure: function (errMsg) {
-            failure = errMsg;
+          error: function (xhr, status, error) {
+            result.status = status;
+            result.error = error;
           }
         });
-        console.log(success);
-        console.log(failure);
+
+        console.log('result:');
+        console.log(result);
+
+        var SMSS = '';
+        if (typeof result.data !== 'undefined') {
+          SMSS = result.data.SMSSendSuccess;
+        }
+        var SRMsg = '';
+        if (typeof result.data !== 'undefined') {
+          SRMsg = result.data.SendResponseMsg;
+        }
+        var error;
+        if (typeof result.data !== 'undefined') {
+          error = result.data.error;
+        } else {
+          error = result.error;
+        }
 
         tbodyContent += '<tr>';
         tbodyContent += '<th scope="row">' + data.sendData[item].no + '</th>';
         tbodyContent += '<td>' + data.sendData[item].recipientPhone + '</td>';
         tbodyContent += '<td>' + data.sendData[item].ticketNo + '</td>';
-        tbodyContent += '<td>' + success + '</td>';
+        tbodyContent += '<td>' + result.status + '</td>';
+        tbodyContent += '<td>' + SMSS + '</td>';
+        tbodyContent += '<td>' + SRMsg + '</td>';
+        tbodyContent += '<td>' + error + '</td>';
         tbodyContent += '</tr>';
       }
       $('.js-data-tbody').html(tbodyContent);
