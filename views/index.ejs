@@ -53,20 +53,20 @@
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
 <script>
-  var data = <%- data %>;
+  const data = <%- data %>;
 
   $(function () {
     if (data.sendData) {
-      var tbodyContent = '';
-      for (var item in data.sendData) {
+      let tbodyContent = '';
+      for (let item in data.sendData) {
         tbodyContent += '<tr>';
         tbodyContent += '<th scope="row">' + data.sendData[item].no + '</th>';
         tbodyContent += '<td>' + data.sendData[item].recipientPhone + '</td>';
         tbodyContent += '<td>' + data.sendData[item].ticketNo + '</td>';
-        tbodyContent += '<td></td>';
-        tbodyContent += '<td></td>';
-        tbodyContent += '<td></td>';
-        tbodyContent += '<td></td>';
+        tbodyContent += '<td class="js-status-' + data.sendData[item].no + '"></td>';
+        tbodyContent += '<td class="js-SMSS-' + data.sendData[item].no + '"></td>';
+        tbodyContent += '<td class="js-SRMsg-' + data.sendData[item].no + '"></td>';
+        tbodyContent += '<td class="js-error-' + data.sendData[item].no + '"></td>';
         tbodyContent += '</tr>';
       }
       $('.js-data-tbody').html(tbodyContent);
@@ -77,11 +77,10 @@
     event.preventDefault();
     console.log(data);
     if (!$.isEmptyObject(data)) {
-      var tbodyContent = '';
-      for (var item in data.sendData) {
-        var recipientPhone = data.sendData[item].recipientPhone;
-        var ticketNo = data.sendData[item].ticketNo;
-        var result = {};
+      for (let item in data.sendData) {
+        const recipientPhone = data.sendData[item].recipientPhone;
+        const ticketNo = data.sendData[item].ticketNo;
+        let result = {};
         $.ajax({
           type: 'POST',
           url: 'http://' + data.serverIP + '/theLoopDev/api/Transaction/PresentBatch',
@@ -93,7 +92,6 @@
           }),
           contentType: "application/json; charset=utf-8",
           dataType: "json",
-          async: false,
           success: function (data, status, xhr) {
             result.data = data;
             result.status = status;
@@ -101,38 +99,32 @@
           error: function (xhr, status, error) {
             result.status = status;
             result.error = error;
+          },
+          complete: function (xhr, status) {
+            console.log('result:');
+            console.log(result);
+            let SMSS = '';
+            if (typeof result.data !== 'undefined') {
+              SMSS = result.data.SMSSendSuccess;
+            }
+            let SRMsg = '';
+            if (typeof result.data !== 'undefined') {
+              SRMsg = result.data.SendResponseMsg;
+            }
+            let error;
+            if (typeof result.data !== 'undefined') {
+              error = result.data.error;
+            } else {
+              error = result.error;
+            }
+            console.log('.js-status-' + data.sendData[item].no);
+            $('.js-status-' + data.sendData[item].no).text(status);
+            $('.js-SMSS-' + data.sendData[item].no).text(SMSS);
+            $('.js-SRMsg-' + data.sendData[item].no).text(SRMsg);
+            $('.js-error-' + data.sendData[item].no).text(error);
           }
         });
-
-        console.log('result:');
-        console.log(result);
-
-        var SMSS = '';
-        if (typeof result.data !== 'undefined') {
-          SMSS = result.data.SMSSendSuccess;
-        }
-        var SRMsg = '';
-        if (typeof result.data !== 'undefined') {
-          SRMsg = result.data.SendResponseMsg;
-        }
-        var error;
-        if (typeof result.data !== 'undefined') {
-          error = result.data.error;
-        } else {
-          error = result.error;
-        }
-
-        tbodyContent += '<tr>';
-        tbodyContent += '<th scope="row">' + data.sendData[item].no + '</th>';
-        tbodyContent += '<td>' + data.sendData[item].recipientPhone + '</td>';
-        tbodyContent += '<td>' + data.sendData[item].ticketNo + '</td>';
-        tbodyContent += '<td>' + result.status + '</td>';
-        tbodyContent += '<td>' + SMSS + '</td>';
-        tbodyContent += '<td>' + SRMsg + '</td>';
-        tbodyContent += '<td>' + error + '</td>';
-        tbodyContent += '</tr>';
       }
-      $('.js-data-tbody').html(tbodyContent);
     }
   })
 </script>
