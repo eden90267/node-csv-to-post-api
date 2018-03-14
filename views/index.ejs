@@ -27,7 +27,8 @@
             <input type="file" id="fileUpload" class="form-control-file" name="csvdata" accept="text/csv">
         </div>
         <button type="submit" class="btn btn-outline-primary mr-1">上傳</button>
-        <button class="btn btn-outline-secondary js-post-to-api">POST to API</button>
+        <button class="btn btn-outline-secondary mr-1 js-post-to-api">POST to API</button>
+        <a class="btn btn-outline-info js-post-download" role="button">Download</a>
     </form>
     <table class="table">
         <thead>
@@ -83,7 +84,7 @@
         let result = {};
         $.ajax({
           type: 'POST',
-          url: 'http://' + data.serverIP + '/theLoopDev/api/Transaction/PresentBatch',
+          url: data.url,
           data: JSON.stringify({
             'RecipientPhone': recipientPhone,
             'TicketNo': ticketNo,
@@ -117,7 +118,10 @@
             } else {
               error = result.error;
             }
-            console.log('.js-status-' + data.sendData[item].no);
+            data.sendData[item].status = status;
+            data.sendData[item].SMSS = SMSS;
+            data.sendData[item].SRMsg = SRMsg;
+            data.sendData[item].error = error;
             $('.js-status-' + data.sendData[item].no).text(status);
             $('.js-SMSS-' + data.sendData[item].no).text(SMSS);
             $('.js-SRMsg-' + data.sendData[item].no).text(SRMsg);
@@ -126,7 +130,14 @@
         });
       }
     }
-  })
+  });
+
+  $('.js-post-download').on('click', function (event) {
+    event.preventDefault();
+    var form = $('<form></form>').attr('action', '/post-data').attr('method', 'post');
+    form.append($('<input>').attr('type', 'hidden').attr('name', 'data').attr('value', JSON.stringify(data)));
+    form.appendTo('body').submit().remove();
+  });
 </script>
 </body>
 </html>

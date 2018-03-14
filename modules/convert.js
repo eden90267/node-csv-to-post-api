@@ -1,6 +1,6 @@
 function convertCSVToJSON(fileRows) {
   console.log(fileRows);
-  let serverIP = fileRows[0][1].trim();
+  let url = fileRows[0][1].trim();
   let SMSMessage = fileRows[1][1].trim();
   let IMMessage = fileRows[2][1].trim();
   let sendData = [];
@@ -14,7 +14,7 @@ function convertCSVToJSON(fileRows) {
     }
   }
   let result = {
-    serverIP,
+    url,
     SMSMessage,
     IMMessage,
     sendData
